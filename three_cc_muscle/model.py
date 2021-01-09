@@ -1,4 +1,6 @@
-from typing import List
+from typing import List, Optional
+
+import numpy as np
 
 
 class CCrMuscleModel:
@@ -14,7 +16,7 @@ class CCrMuscleModel:
         self.fatigue_rate = fatigue_rate
         self.rest_rate = rest_rate
 
-    def update_compartments(self, target_intensity: float, control: float, dt: float) -> None:
+    def _update_compartments(self, target_intensity: float, control: float, dt: float) -> None:
         if target_intensity == 0:
             self.m_r += dt * (-control + self.recovery_rate * self.rest_rate * self.m_f)
         else:
@@ -34,7 +36,7 @@ class CCrMuscleModel:
         else:
             raise RuntimeError(f"Condition occurred in muscle model not covered by the original authors.")
 
-        self.update_compartments(target_intensity, control, dt)
+        self._update_compartments(target_intensity, control, dt)
 
         return control
 
@@ -49,3 +51,30 @@ class CCrMuscleModel:
         self.m_r = 1.0
         self.m_a = 0.0
         self.m_f = 0.0
+
+
+class CCrMuscleGroupModel:
+    def __init__(self, n_muscles: int, recovery_rates: Optional[List[float]] = None,
+                 fatigue_rates: Optional[List[float]] = None, rest_rates: Optional[List[float]] = None):
+
+        assert fatigue_rates is None or len(fatigue_rates) == n_muscles
+        assert recovery_rates is None or len(recovery_rates) == n_muscles
+        assert rest_rates is None or len(rest_rates) == n_muscles
+
+        self.models: List[CCrMuscleModel] = list()
+        for i in range(n_muscles):
+            kwargs = {}
+            if recovery_rates is not None:
+                kwargs["recovery_rate"] = recovery_rates[i]
+            if fatigue_rates is not None:
+                kwargs["fatigue_rate"] = fatigue_rates[i]
+            if rest_rates is not None:
+                kwargs["rest_rate"] = rest_rates[i]
+            self.models.append(CCrMuscleModel(**kwargs))
+
+    def reset(self) -> None:
+        map(lambda model: model.reset(), self.models)
+
+    def step(self, actions: np.ndarray, dt: float) -> np.ndarray:
+        return np.array(list(map(lambda model, action: model.step(action, dt), self.models, actions)))
+

@@ -1,1 +1,1 @@
-from .model import CCrMuscleModel
+from .model import CCrMuscleModel, CCrMuscleGroupModel

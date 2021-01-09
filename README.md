@@ -14,8 +14,20 @@ The optimal rates for specific joints can be found in the [original paper](https
 By default the model uses the optimal parameters for general joints as described in the paper.
 ```python
 from three_cc_muscle import CCrMuscleModel
-model = CCrMuscleModel()
-```
 
+muscle = CCrMuscleModel()
+action = muscle.step(0.95, 0.01)
+```
+Additionally, the package offers a simple wrapper to handle multiple muscles concurrently. 
+Internally it uses the builtin map() function. 
+To reduce the risk for implementation errors there is no truly vector based implementation for now.
+```python
+from three_cc_muscle import CCrMuscleGroupModel
+import numpy as np
+
+n_muscles = 7
+muscle = CCrMuscleGroupModel(n_muscles=n_muscles)
+action = muscle.step(np.ones((n_muscles, )), 0.01)
+```
 ## Note
 I have no affiliation with the original authors and cannot guarantee the correctness of my implementation.

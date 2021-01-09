@@ -1,4 +1,6 @@
-from three_cc_muscle import CCrMuscleModel
+from three_cc_muscle import CCrMuscleModel, CCrMuscleGroupModel
+import numpy as np
+
 
 if __name__ == '__main__':
     model = CCrMuscleModel()
@@ -20,3 +22,11 @@ if __name__ == '__main__':
         assert model.m_r <= model.tracking_factor
 
     print(model.step(-1.0, 0.01))
+
+    del model
+
+    model = CCrMuscleGroupModel(n_muscles=7)
+    print(model.step(np.ones(7), 0.01))
+    for i in range(1000):
+        action = model.step(np.ones(7), 0.01)
+    print(model.step(np.ones(7), 0.01))
