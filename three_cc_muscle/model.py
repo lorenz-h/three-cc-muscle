@@ -8,8 +8,8 @@ class CCrMuscleModel:
         # defaults for recovery, fatigue and rest rate are optimal parameters for general muscles
         # taken from https://doi.org/10.1016/j.jbiomech.2012.04.018
         self.tracking_factor = 10.
-        self.m_r = 1.0
-        self.m_a = 0.0
+        self.m_r = 0.5
+        self.m_a = 0.5
         self.m_f = 0.0
 
         self.recovery_rate = recovery_rate
@@ -18,11 +18,11 @@ class CCrMuscleModel:
 
     def _update_compartments(self, target_intensity: float, control: float, dt: float) -> None:
         if target_intensity == 0:
-            self.m_r += dt * (-control + self.recovery_rate * self.rest_rate * self.m_f)
+            self.m_r += dt * (-control + (self.recovery_rate * self.rest_rate * self.m_f))
         else:
-            self.m_r += dt * (-control + self.recovery_rate * self.rest_rate * self.m_f)
-        self.m_a += dt * (control - self.fatigue_rate * self.m_a)
-        self.m_f += dt * (self.fatigue_rate * self.m_a - self.recovery_rate * self.m_f)
+            self.m_r += dt * (-control + (self.recovery_rate * self.m_f))
+        self.m_a += dt * (control - (self.fatigue_rate * self.m_a))
+        self.m_f += dt * ((self.fatigue_rate * self.m_a) - (self.recovery_rate * self.m_f))
 
     def _forward(self, target_intensity: float, dt: float) -> float:
         control: float
@@ -42,15 +42,18 @@ class CCrMuscleModel:
 
     def step(self, action: float, dt: float) -> float:
         assert -1.0 <= action <= 1.0
-        action_sign: float = 1 - ((action <= 0.0) * 2)  # get the sign (-1 or 1) of the action
+        action_sign: float = 1 - (int(action <= 0.0) * 2)  # get the sign (-1 or 1) of the action
         target_intensity = abs(action)
         control = self._forward(target_intensity, dt)
         return (control / self.tracking_factor) * action_sign
 
     def reset(self):
-        self.m_r = 1.0
-        self.m_a = 0.0
+        self.m_r = 0.5
+        self.m_a = 0.5
         self.m_f = 0.0
+
+    def get_state(self):
+        return self.m_r, self.m_a, self.m_f
 
 
 class CCrMuscleGroupModel:
@@ -73,8 +76,12 @@ class CCrMuscleGroupModel:
             self.models.append(CCrMuscleModel(**kwargs))
 
     def reset(self) -> None:
-        map(lambda model: model.reset(), self.models)
+        for model in self.models:
+            model.reset()
 
     def step(self, actions: np.ndarray, dt: float) -> np.ndarray:
         return np.array(list(map(lambda model, action: model.step(action, dt), self.models, actions)))
+
+    def get_state(self):
+        return np.array([model.get_state() for model in self.models]).flatten()
 
