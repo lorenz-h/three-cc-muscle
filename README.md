@@ -6,8 +6,7 @@ The model is adapted for use with direct torque control on hinge joints and take
 
 ## Installation
 ```shell
-git clone https://github.com/lorenz-h/three-cc-muscle.git
-pip install -e ./three-cc-muscle
+pip install git+https://github.com/lorenz-h/three-cc-muscle.git
 ```
 
 ## Usage
