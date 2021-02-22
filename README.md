@@ -1,6 +1,7 @@
 # three-cc-muscle
 Python implementation of the 3CC-r muscle model as proposed in 
-[Modification of a three-compartment muscle fatigue model to predict peak torque decline during intermittent tasks](https://doi.org/10.1016/j.jbiomech.2012.04.018).
+[Modification of a three-compartment muscle fatigue model to predict peak torque decline during intermittent tasks](https://doi.org/10.1016/j.jbiomech.2018.06.005).
+As expressed in the original paper, this implementation may also be used as a 3CC model, by setting the rest parameter equal to 1.
 The model is adapted for use with direct torque control on hinge joints and takes actions on the interval (-1, 1) as input.
 
 ## Installation
@@ -10,7 +11,7 @@ pip install -e ./three-cc-muscle
 ```
 
 ## Usage
-The optimal rates for specific joints can be found in the [original paper](https://doi.org/10.1016/j.jbiomech.2012.04.018). 
+The optimal rates for specific joints can be found in the [original paper](https://doi.org/10.1016/j.jbiomech.2018.06.005). 
 By default the model uses the optimal parameters for general joints as described in the paper.
 ```python
 from three_cc_muscle import CCrMuscleModel
